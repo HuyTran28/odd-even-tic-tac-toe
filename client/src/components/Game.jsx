@@ -10,11 +10,12 @@ export default function Game() {
         winner,
         winnerCombination,
         player,
+        room,
         wins,
         losses,
         draws,
         currentWinStreak,
-        isPlayable,
+        opponentState,
         chooseSquare,
         resetGame
     } = useGame();
@@ -38,7 +39,8 @@ export default function Game() {
                 winner={winner} 
                 resetGame={resetGame} 
                 player={player}
-                isPlayable={isPlayable}
+                room={room}
+                opponentState={opponentState}
             />
         </>
     )

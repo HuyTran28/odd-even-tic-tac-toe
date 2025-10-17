@@ -1,6 +1,6 @@
 import styles from "./GameInfo.module.css"
 
-export default function GameInfo({ winner, resetGame, player, isPlayable }) {
+export default function GameInfo({ winner, resetGame, player, room, opponentState }) {
     return (
         <>
             {winner ? (
@@ -14,7 +14,9 @@ export default function GameInfo({ winner, resetGame, player, isPlayable }) {
             ) : (
                 <div>You are {player} player</div>
             )}
-            {!isPlayable && <div>Waiting for opponent to join...</div>}
+            <div>Your room ID: {room}</div>
+            {opponentState === -1 && <div>Waiting for opponent to join...</div>}
+            {opponentState === 1 && <div>Opponent left the game. Please reset the game.</div>}
             <button className={styles.button} onClick={() => resetGame()}>Reset</button>
         </>
     )

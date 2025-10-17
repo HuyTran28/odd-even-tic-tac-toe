@@ -20,11 +20,12 @@ export function useGame() {
     const [board, setBoard] = useState(Array(BOARD_SIZE).fill(0));
     const [winner, setWinner] = useState(null);
     const [winnerCombination, setWinnerCombination] = useState([]);
-    const socketRef = useRef(null);
-    const [isPlayable, setIsPlayable] = useState(false);
-    const [player, setPlayer] = useState(null);
+    const [opponentState, setOpponentState] = useState(-1);
     const [room, setRoom] = useState(null);
-    const [{ wins, losses, draws, currentWinStreak }, setScore] = useState(getInitialScore());
+    const [{ wins, losses, draws, currentWinStreak }, setScore] = useState({wins: 0, losses: 0, draws: 0, currentWinStreak: 0});
+
+    const socketRef = useRef(null);
+    const playerRef = useRef(null);
 
     useEffect(() => {
         if (socketRef.current) return;
@@ -36,12 +37,12 @@ export function useGame() {
         });
 
         socket.on("assign", (data) => {
-            setPlayer(data.player);
+            playerRef.current = data.player;
             setRoom(data.room);
         });
 
         socket.on("start", () => {
-            setIsPlayable(true);
+            setOpponentState(0);
         });
 
         socket.on("display", (data) => {
@@ -50,6 +51,11 @@ export function useGame() {
                 newBoard[data.index] = data.value;
                 return newBoard;
             });
+        });
+
+        socket.on("playerLeft", () => {
+            setOpponentState(1);
+            setWinner(playerRef.current);
         });
 
         socket.on("reset", () => {
@@ -64,31 +70,34 @@ export function useGame() {
     }, [])
 
     useEffect(() => {
-        localStorage.setItem(SCORE_KEY, JSON.stringify({ wins, losses, draws, currentWinStreak }));
-    }, [wins, losses, draws, currentWinStreak]);
+        if (winner === null) return;
 
-    useEffect(() => {
-        if (!winner) return;
-
-        if (winner === FIRST_PLAYER) {
-            setScore(preScore => ({
-                ...preScore,
-                wins: preScore.wins + 1,
-                currentWinStreak: preScore.currentWinStreak + 1
-            }));
-        } else if (winner === SECOND_PLAYER) {
-            setScore(preScore => ({
-                ...preScore,
-                losses: preScore.losses + 1,
+        let newScore = {};
+        if (winner === "Draw") {
+            newScore = {
+                wins,
+                losses,
+                draws: draws + 1,
                 currentWinStreak: 0
-            }));
-        } else {
-            setScore(preScore => ({
-                ...preScore,
-                draws: preScore.draws + 1,
-                currentWinStreak: 0
-            }));
+            };
         }
+        else if (winner === playerRef.current) {
+            newScore = {
+                wins: wins + 1,
+                losses,
+                draws,
+                currentWinStreak: currentWinStreak + 1
+            };
+        }
+        else {
+            newScore = {
+                wins,
+                losses: losses + 1,
+                draws,
+                currentWinStreak: 0
+            };
+        }
+        setScore(newScore);
     }, [winner])
 
     useEffect(() => {
@@ -98,7 +107,7 @@ export function useGame() {
     }, [board])
 
     const chooseSquare = (index) => {
-        if (winner || !isPlayable) {
+        if (winner || opponentState !== 0) {
             return;
         }
         socketRef.current.emit('increment', {
@@ -116,12 +125,13 @@ export function useGame() {
         board,
         winner,
         winnerCombination,
-        player,
+        player: playerRef.current,
+        room,
         wins,
         losses,
         draws,
         currentWinStreak,
-        isPlayable,
+        opponentState,
         chooseSquare,
         resetGame
     };

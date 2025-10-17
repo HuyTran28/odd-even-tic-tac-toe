@@ -13,6 +13,7 @@ const io = new Server(httpServer, {
 
 let roomCounter = 1;
 const rooms = {};
+const lockedRooms = new Set();
 
 io.on('connection', (socket) => {
   let assignedRoom = null;
@@ -20,7 +21,7 @@ io.on('connection', (socket) => {
   socket.on('join', () => {
     assignedRoom = null;
     for (const [room, players] of Object.entries(rooms)) {
-      if (players.length < 2) {
+      if (players.length < 2 && !lockedRooms.has(room)) {
         assignedRoom = room;
         break;
       }
@@ -54,6 +55,7 @@ io.on('connection', (socket) => {
   socket.on('reset', (room) => {
     if (room) {
       io.to(room).emit('reset');
+      lockedRooms.delete(room);
     }
   });
 
@@ -62,8 +64,13 @@ io.on('connection', (socket) => {
       const index = players.indexOf(socket.id);
       if (index !== -1) {
         players.splice(index, 1);
+        
         if (players.length === 0) {
           delete rooms[room];
+          lockedRooms.delete(room);
+        } else {
+          io.to(room).emit('playerLeft');
+          lockedRooms.add(room);
         }
         break;
       }
