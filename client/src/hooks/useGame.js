@@ -21,7 +21,9 @@ export function useGame() {
     const [winner, setWinner] = useState(null);
     const [winnerCombination, setWinnerCombination] = useState([]);
     const socketRef = useRef(null);
+    const [isPlayable, setIsPlayable] = useState(false);
     const [player, setPlayer] = useState(null);
+    const [room, setRoom] = useState(null);
     const [{ wins, losses, draws, currentWinStreak }, setScore] = useState(getInitialScore());
 
     useEffect(() => {
@@ -33,8 +35,13 @@ export function useGame() {
             socket.emit("join");
         });
 
-        socket.on("start", (data) => {
+        socket.on("assign", (data) => {
             setPlayer(data.player);
+            setRoom(data.room);
+        });
+
+        socket.on("start", () => {
+            setIsPlayable(true);
         });
 
         socket.on("display", (data) => {
@@ -91,17 +98,18 @@ export function useGame() {
     }, [board])
 
     const chooseSquare = (index) => {
-        if (winner) {
+        if (winner || !isPlayable) {
             return;
         }
         socketRef.current.emit('increment', {
+            room,
             index,
             value: board[index]
         });
     };
 
     const resetGame = () => {
-        socketRef.current.emit('reset');
+        socketRef.current.emit('reset', room);
     }
 
     return {
@@ -113,6 +121,7 @@ export function useGame() {
         losses,
         draws,
         currentWinStreak,
+        isPlayable,
         chooseSquare,
         resetGame
     };

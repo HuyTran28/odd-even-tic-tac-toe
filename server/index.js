@@ -11,29 +11,63 @@ const io = new Server(httpServer, {
   }
 });
 
-let playerCount = 0;
+let roomCounter = 1;
+const rooms = {};
 
 io.on('connection', (socket) => {
-  playerCount++;
+  let assignedRoom = null;
 
   socket.on('join', () => {
-    const player = playerCount === 1 ? FIRST_PLAYER : SECOND_PLAYER;
-    socket.emit('start', { player });
+    assignedRoom = null;
+    for (const [room, players] of Object.entries(rooms)) {
+      if (players.length < 2) {
+        assignedRoom = room;
+        break;
+      }
+    }
+
+    if (!assignedRoom) {
+      assignedRoom = `room${roomCounter++}`;
+      rooms[assignedRoom] = [];
+    }
+
+    rooms[assignedRoom].push(socket.id);
+    socket.join(assignedRoom);
+
+    const player = rooms[assignedRoom].length === 1 ? FIRST_PLAYER : SECOND_PLAYER;
+    socket.emit('assign', { player, room: assignedRoom });
+
+    if (rooms[assignedRoom].length === 2) {
+      io.to(assignedRoom).emit('start');
+    }
   });
 
   socket.on('increment', (data) => {
-    io.emit('display', {
-      value: data.value + 1,
-      index: data.index
-    });
+    if (data.room) {
+      io.to(data.room).emit('display', {
+        value: data.value + 1,
+        index: data.index
+      });
+    }
+  });
+
+  socket.on('reset', (room) => {
+    if (room) {
+      io.to(room).emit('reset');
+    }
   });
 
   socket.on('disconnect', () => {
-    playerCount = Math.max(0, playerCount - 1);
-  });
-
-  socket.on('reset', () => {
-    io.emit('reset');
+    for (const [room, players] of Object.entries(rooms)) {
+      const index = players.indexOf(socket.id);
+      if (index !== -1) {
+        players.splice(index, 1);
+        if (players.length === 0) {
+          delete rooms[room];
+        }
+        break;
+      }
+    }
   });
 });
 

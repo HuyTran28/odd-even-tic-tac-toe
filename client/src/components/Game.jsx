@@ -14,6 +14,7 @@ export default function Game() {
         losses,
         draws,
         currentWinStreak,
+        isPlayable,
         chooseSquare,
         resetGame
     } = useGame();
@@ -37,6 +38,7 @@ export default function Game() {
                 winner={winner} 
                 resetGame={resetGame} 
                 player={player}
+                isPlayable={isPlayable}
             />
         </>
     )
