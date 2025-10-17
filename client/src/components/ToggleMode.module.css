@@ -1,0 +1,13 @@
+.ToggleModeGroup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    font-size: 1rem;
+    font-family: inherit;
+}

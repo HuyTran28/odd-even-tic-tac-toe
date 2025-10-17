@@ -1,0 +1,13 @@
+.scoreBoard {
+    width: 200px;
+    padding: 24px 20px;
+    background: #f8f8f8;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    margin-top: 48px;
+    margin-left: 0;
+    border: 1.5px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
