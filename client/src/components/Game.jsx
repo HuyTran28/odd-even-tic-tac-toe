@@ -7,7 +7,6 @@ import styles from './Game.module.css';
 export default function Game() {
     const {
         board,
-        isPlayerTurn,
         winner,
         winnerCombination,
         totalPosNum,
@@ -38,7 +37,6 @@ export default function Game() {
             <GameInfo 
                 winner={winner} 
                 resetGame={resetGame} 
-                isPlayerTurn={isPlayerTurn}
                 totalPosNum={totalPosNum}
                 durationMs={durationMs}    
             />

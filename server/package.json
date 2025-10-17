@@ -1,8 +1,6 @@
 {
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "server": "npm run dev"
+    "start": "nodemon index.js"
   },
   "dependencies": {
     "ws": "^8.18.3"

@@ -1,8 +1,10 @@
+const { FIRST_PLAYER, SECOND_PLAYER } = require('../client/src/constants/gameConstants')
+
 const http = require('http');
-const socketIo = require('socket.io');
+const { Server } = require('socket.io');
 
 const httpServer = http.createServer();
-const io = socketIo(httpServer, {
+const io = new Server(httpServer, {
   cors: {
     origin: '*',
     methods: ['GET', 'POST']
@@ -15,14 +17,14 @@ io.on('connection', (socket) => {
   playerCount++;
 
   socket.on('join', () => {
-    const player = playerCount === 1 ? 'X' : 'O';
+    const player = playerCount === 1 ? FIRST_PLAYER : SECOND_PLAYER;
     socket.emit('start', { player });
   });
 
-  socket.on('move', (data) => {
+  socket.on('increment', (data) => {
     io.emit('display', {
-      board: data.board,
-      nextPlayer: data.nextPlayer
+      value: data.value + 1,
+      index: data.index
     });
   });
 
