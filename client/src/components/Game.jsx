@@ -9,8 +9,7 @@ export default function Game() {
         board,
         winner,
         winnerCombination,
-        totalPosNum,
-        durationMs,
+        player,
         wins,
         losses,
         draws,
@@ -37,8 +36,7 @@ export default function Game() {
             <GameInfo 
                 winner={winner} 
                 resetGame={resetGame} 
-                totalPosNum={totalPosNum}
-                durationMs={durationMs}    
+                player={player}
             />
         </>
     )

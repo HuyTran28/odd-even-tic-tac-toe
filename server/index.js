@@ -31,6 +31,10 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     playerCount = Math.max(0, playerCount - 1);
   });
+
+  socket.on('reset', () => {
+    io.emit('reset');
+  });
 });
 
 httpServer.listen(8080, () => {

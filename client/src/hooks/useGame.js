@@ -21,9 +21,7 @@ export function useGame() {
     const [winner, setWinner] = useState(null);
     const [winnerCombination, setWinnerCombination] = useState([]);
     const socketRef = useRef(null);
-    const playerRef = useRef(null);
-    const [totalPosNum, setTotalPosNum] = useState(0);
-    const [durationMs, setDurationMs] = useState(0);
+    const [player, setPlayer] = useState(null);
     const [{ wins, losses, draws, currentWinStreak }, setScore] = useState(getInitialScore());
 
     useEffect(() => {
@@ -36,7 +34,7 @@ export function useGame() {
         });
 
         socket.on("start", (data) => {
-            playerRef.current = data.player;
+            setPlayer(data.player);
         });
 
         socket.on("display", (data) => {
@@ -45,6 +43,11 @@ export function useGame() {
                 newBoard[data.index] = data.value;
                 return newBoard;
             });
+        });
+
+        socket.on("reset", () => {
+            setBoard(Array(BOARD_SIZE).fill(0))
+            setWinner(null)
         });
 
         return () => {
@@ -81,11 +84,11 @@ export function useGame() {
         }
     }, [winner])
 
-    // useEffect(() => {
-    //     const { winner, combination } = calculateWinner(board)
-    //     setWinner(winner);
-    //     setWinnerCombination(combination);
-    // }, [board])
+    useEffect(() => {
+        const { winner, combination } = calculateWinner(board)
+        setWinner(winner);
+        setWinnerCombination(combination);
+    }, [board])
 
     const chooseSquare = (index) => {
         if (winner) {
@@ -98,21 +101,14 @@ export function useGame() {
     };
 
     const resetGame = () => {
-        setBoard(Array(BOARD_SIZE).fill(0))
-        setWinner(null)
-        setTotalPosNum(0)
-        setDurationMs(0)
-        if (socketRef.current) {
-            socketRef.current.emit("reset");
-        }
+        socketRef.current.emit('reset');
     }
 
     return {
         board,
         winner,
         winnerCombination,
-        totalPosNum,
-        durationMs,
+        player,
         wins,
         losses,
         draws,
