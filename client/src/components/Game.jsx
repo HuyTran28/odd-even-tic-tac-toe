@@ -3,10 +3,13 @@ import GameInfo from "./GameInfo";
 import ScoreBoard from "./ScoreBoard";
 import { useGame } from "../hooks/useGame";
 import styles from './Game.module.css';
+import React from "react";
 
 export default function Game() {
+    const [chaosMode, setChaosMode] = React.useState(false);
     const {
         board,
+        pendingBoard,
         winner,
         winnerCombination,
         player,
@@ -18,13 +21,17 @@ export default function Game() {
         opponentState,
         chooseSquare,
         resetGame
-    } = useGame();
+    } = useGame(chaosMode);
     
     return (
         <>
+            <button onClick={() => setChaosMode((prev) => !prev)} style={{marginBottom: 12}}>
+                {chaosMode ? "Disable Chaos Mode" : "Enable Chaos Mode"}
+            </button>
             <div className={styles.gameContainer}>
                 <Board 
-                    board={board} 
+                    board={board}
+                    pendingBoard={pendingBoard}
                     handleClick={chooseSquare} 
                     winnerCombination={winnerCombination}
                 />

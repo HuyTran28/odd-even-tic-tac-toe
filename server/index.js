@@ -1,4 +1,5 @@
-const { FIRST_PLAYER, SECOND_PLAYER } = require('../client/src/constants/gameConstants')
+const { FIRST_PLAYER, SECOND_PLAYER } = require('../shared/gameConstants');
+const { calculateWinner } = require('../shared/gameLogic');
 
 const http = require('http');
 const { Server } = require('socket.io');
@@ -13,9 +14,9 @@ const io = new Server(httpServer, {
 
 
 let roomCounter = 1;
-const rooms = {}; // { roomName: [socketId, ...] }
+const rooms = {}; 
 const lockedRooms = new Set();
-const roomBoards = {}; // { roomName: [values] }
+const roomBoards = {}; 
 
 io.on('connection', (socket) => {
   let assignedRoom = null;
@@ -52,12 +53,18 @@ io.on('connection', (socket) => {
       if (!roomBoards[room]) {
         roomBoards[room] = Array(9).fill(0);
       }
-      roomBoards[room][index] = (roomBoards[room][index] || 0) + 1;
+
+      roomBoards[room][index] = (roomBoards[room][index] | 0) + 1;
       io.to(room).emit('display', {
         value: roomBoards[room][index],
         index
       });
-    }
+
+      const { winner, combination } = calculateWinner(roomBoards[room]);
+      if (winner !== null) {
+        io.to(room).emit('win', { winner, combination });
+      }
+   }
   });
 
   socket.on('reset', (room) => {

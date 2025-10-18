@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
-import { calculateWinner } from "../utils/gameLogic";
 import { BOARD_SIZE } from "../constants/gameConstants";
 
-export function useGame() {
+export function useGame(chaosMode = false) {
     const [board, setBoard] = useState(Array(BOARD_SIZE).fill(0));
+    const [pendingBoard, setPendingBoard] = useState(Array(BOARD_SIZE).fill(false));
     const [winner, setWinner] = useState(null);
     const [winnerCombination, setWinnerCombination] = useState([]);
     const [opponentState, setOpponentState] = useState(-1);
@@ -13,6 +13,11 @@ export function useGame() {
 
     const socketRef = useRef(null);
     const playerRef = useRef(null);
+    const winnerRef = useRef(winner);
+
+    useEffect(() => {
+        winnerRef.current = winner;
+    }, [winner]);
 
     useEffect(() => {
         if (socketRef.current) return;
@@ -33,6 +38,14 @@ export function useGame() {
         });
 
         socket.on("display", (data) => {
+            if (winnerRef.current !== null) return;
+            console.log("Display event received:", data);
+            
+            setPendingBoard((prevBoard) => {
+                const newBoard = [...prevBoard];
+                newBoard[data.index] = false;
+                return newBoard;
+            });
             setBoard((prevBoard) => {
                 const newBoard = [...prevBoard];
                 newBoard[data.index] = data.value;
@@ -45,10 +58,17 @@ export function useGame() {
             setWinner(playerRef.current);
         });
 
+        socket.on("win", (data) => {
+            setWinner(data.winner);
+            setWinnerCombination(data.combination);
+        });
+
         socket.on("reset", () => {
             setOpponentState(prev => prev === 1 ? -1 : prev);
             setBoard(Array(BOARD_SIZE).fill(0));
             setWinner(null);
+            setWinnerCombination([]);
+            setPendingBoard(Array(BOARD_SIZE).fill(false));
         });
 
         return () => {
@@ -88,29 +108,46 @@ export function useGame() {
         setScore(newScore);
     }, [winner])
 
-    useEffect(() => {
-        const { winner, combination } = calculateWinner(board)
-        setWinner(winner);
-        setWinnerCombination(combination);
-    }, [board])
-
     const chooseSquare = (index) => {
         if (winner || opponentState !== 0) {
             return;
         }
-        socketRef.current.emit('increment', {
-            room,
-            index,
-            value: board[index]
+
+        setPendingBoard((prev) => {
+            const newBoard = [...prev];
+            newBoard[index] = true;
+            return newBoard;
         });
+
+        const emitIncrement = () => {
+            socketRef.current.emit('increment', {
+                room,
+                index
+            });
+        };
+        if (chaosMode) {
+            const delay = Math.random() * 2000;
+            setTimeout(emitIncrement, delay);
+        } else {
+            emitIncrement();
+        }
     };
 
     const resetGame = () => {
-        socketRef.current.emit('reset', room);
+        const emitReset = () => {
+            socketRef.current.emit('reset', room);
+        };
+        if (chaosMode) {
+            const delay = Math.random() * 1000;
+            setTimeout(emitReset, delay);
+        } else {
+            emitReset();
+        }
     }
 
     return {
         board,
+        pendingBoard,
         winner,
         winnerCombination,
         player: playerRef.current,

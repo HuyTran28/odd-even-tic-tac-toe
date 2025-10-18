@@ -18,9 +18,11 @@
     background: #f0f4f8;
     border-color: #90caf9;
 }
+
 .square:active {
     background: #e3e9f0;
 }
+
 .square.winner {
     background: #388e3c;
     color: #fff;
@@ -28,4 +30,20 @@
     box-shadow: 0 0 16px #43a04788;
     font-weight: bold;
     letter-spacing: 1px;
+}
+
+.square.pending {
+    background: #fff3e0;
+    border-color: #ffb74d;
+    box-shadow: 0 0 12px #ffb74d88;
+}
+
+.square.even {
+    background-color: #bbdefb;
+    color: #0d47a1;
+}
+
+.square.odd {
+    background-color: #ffcdd2;
+    color: #b71c1c;
 }

@@ -1,6 +1,6 @@
-import { FIRST_PLAYER, SECOND_PLAYER } from "../constants/gameConstants";
+const { FIRST_PLAYER, SECOND_PLAYER } = require("./gameConstants");
 
-const calculateWinner = (board) => {
+function calculateWinner(board) {
     const winnerSet = [
         [0, 1, 2, 3, 4],
         [5, 6, 7, 8, 9],
@@ -24,8 +24,7 @@ const calculateWinner = (board) => {
         if (set.every(index => board[index] % 2 === 0 && board[index] !== 0))
             return {winner: SECOND_PLAYER, combination: set};
     }
-
     return {winner: null, combination: []};
 }
 
-export {calculateWinner}
+module.exports = { calculateWinner };
