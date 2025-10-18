@@ -1,10 +1,21 @@
+const path = require('path');
+const express = require('express');
 const { FIRST_PLAYER, SECOND_PLAYER } = require('../shared/gameConstants');
 const { calculateWinner } = require('../shared/gameLogic');
 
 const http = require('http');
 const { Server } = require('socket.io');
 
-const httpServer = http.createServer();
+const app = express();
+
+const clientBuildPath = path.resolve(__dirname, '..', 'client', 'build');
+app.use(express.static(clientBuildPath));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
+});
+
+const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: '*',
@@ -94,5 +105,7 @@ io.on('connection', (socket) => {
   });
 });
 
-httpServer.listen(8080, () => {
+const PORT = process.env.PORT || 8080;
+
+httpServer.listen(PORT, () => {
 });
