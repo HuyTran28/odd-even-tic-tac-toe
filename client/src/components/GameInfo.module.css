@@ -1,14 +1,22 @@
 .button {
-    margin-top: 32px;
-    padding: 14px 36px;
-    font-size: 18px;
-    background-color: #1976d2;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(25, 118, 210, 0.10);
-    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+        margin-top: 2rem;
+        padding: 0.9rem 2.2rem;
+        font-size: 1.1rem;
+        background-color: #1976d2;
+        color: white;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(25, 118, 210, 0.10);
+        transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+@media (max-width: 600px) {
+    .button {
+        width: 100%;
+        padding: 0.8rem 0.5rem;
+        font-size: 1rem;
+    }
 }
 
 .button:hover {
