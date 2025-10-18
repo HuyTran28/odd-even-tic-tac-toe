@@ -1,20 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import { calculateWinner } from "../utils/gameLogic";
-import { SCORE_KEY, BOARD_SIZE, FIRST_PLAYER, SECOND_PLAYER } from "../constants/gameConstants";
-
-function getInitialScore() {
-    const savedScore = localStorage.getItem(SCORE_KEY);
-    if (savedScore) {
-        return JSON.parse(savedScore);
-    }
-    return {
-        wins: 0,
-        losses: 0,
-        draws: 0,
-        currentWinStreak: 0
-    };
-}
+import { BOARD_SIZE } from "../constants/gameConstants";
 
 export function useGame() {
     const [board, setBoard] = useState(Array(BOARD_SIZE).fill(0));
@@ -59,8 +46,9 @@ export function useGame() {
         });
 
         socket.on("reset", () => {
-            setBoard(Array(BOARD_SIZE).fill(0))
-            setWinner(null)
+            setOpponentState(prev => prev === 1 ? -1 : prev);
+            setBoard(Array(BOARD_SIZE).fill(0));
+            setWinner(null);
         });
 
         return () => {

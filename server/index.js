@@ -11,9 +11,11 @@ const io = new Server(httpServer, {
   }
 });
 
+
 let roomCounter = 1;
-const rooms = {};
+const rooms = {}; // { roomName: [socketId, ...] }
 const lockedRooms = new Set();
+const roomBoards = {}; // { roomName: [values] }
 
 io.on('connection', (socket) => {
   let assignedRoom = null;
@@ -30,6 +32,7 @@ io.on('connection', (socket) => {
     if (!assignedRoom) {
       assignedRoom = `room${roomCounter++}`;
       rooms[assignedRoom] = [];
+      roomBoards[assignedRoom] = Array(9).fill(0);
     }
 
     rooms[assignedRoom].push(socket.id);
@@ -44,10 +47,15 @@ io.on('connection', (socket) => {
   });
 
   socket.on('increment', (data) => {
-    if (data.room) {
-      io.to(data.room).emit('display', {
-        value: data.value + 1,
-        index: data.index
+    const { room, index } = data;
+    if (room && typeof index === 'number') {
+      if (!roomBoards[room]) {
+        roomBoards[room] = Array(9).fill(0);
+      }
+      roomBoards[room][index] = (roomBoards[room][index] || 0) + 1;
+      io.to(room).emit('display', {
+        value: roomBoards[room][index],
+        index
       });
     }
   });
@@ -56,18 +64,19 @@ io.on('connection', (socket) => {
     if (room) {
       io.to(room).emit('reset');
       lockedRooms.delete(room);
+      roomBoards[room] = Array(9).fill(0);
     }
   });
 
   socket.on('disconnect', () => {
     for (const [room, players] of Object.entries(rooms)) {
-      const index = players.indexOf(socket.id);
-      if (index !== -1) {
-        players.splice(index, 1);
-        
+      const idx = players.indexOf(socket.id);
+      if (idx !== -1) {
+        players.splice(idx, 1);
         if (players.length === 0) {
           delete rooms[room];
           lockedRooms.delete(room);
+          delete roomBoards[room];
         } else {
           io.to(room).emit('playerLeft');
           lockedRooms.add(room);
